@@ -9,6 +9,8 @@ public class Purple : MonoBehaviour
     public float speed = 1f;
     [Header("攻擊力"), Range(0, 100)]
     public float attack = 10f;
+    [Header("攻擊冷卻"), Range(0, 30)]
+    public float cd = 3;
     [Header("血量"), Range(0, 1000)]
     public float hp = 100f;
     [Header("偵測範圍"), Range(0, 50)]
@@ -20,6 +22,8 @@ public class Purple : MonoBehaviour
     private Transform player;
     private Rigidbody2D rig;
     private Animator ani;
+
+    private float timer;
     #endregion
 
     #region 事件
@@ -30,6 +34,7 @@ public class Purple : MonoBehaviour
 
         player = GameObject.Find("Player").transform;
 
+        timer = cd;
     }
 
     private void OnDrawGizmos()
@@ -48,6 +53,9 @@ public class Purple : MonoBehaviour
     #endregion
 
     #region 方法
+    /// <summary>
+    /// 移動
+    /// </summary>
     private void Move()
     {
         float dis = Vector3.Distance(player.position, transform.position);
@@ -61,6 +69,7 @@ public class Purple : MonoBehaviour
         {
             rig.velocity = transform.right * speed * Time.deltaTime;
             ani.SetBool("走路開關", true);
+            LookAtPlayer();
         }
 
         else
@@ -68,18 +77,35 @@ public class Purple : MonoBehaviour
                 ani.SetBool("走路開關", false);
         }
     }
+
+    /// <summary>
+    /// 攻擊
+    /// </summary>
     private void Attack()
     {
-        ani.SetTrigger("攻擊觸發");
+        ani.SetBool("走路開關", false);
+        
+        if (timer <= cd)
+        {
+            timer += Time.deltaTime;
+        }
+        else
+        {
+            timer = 0;
+            ani.SetTrigger("攻擊觸發");
+        }
     }
 
-    //面相玩家
+    /// <summary>
+    /// 面相玩家
+    /// </summary>
     private void LookAtPlayer()
     {
         if (transform.position.x > player.position.x)
         {
             transform.eulerAngles = new Vector3(0, 180, 0);
         }
+
         else
         {
             transform.eulerAngles = Vector3.zero;
