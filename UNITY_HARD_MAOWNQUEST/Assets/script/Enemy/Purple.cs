@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Purple : MonoBehaviour
 {
@@ -17,13 +15,25 @@ public class Purple : MonoBehaviour
     public float radiusTrack = 5;
     [Header("攻擊範圍"), Range(0, 30)]
     public float radiusAttack = 2;
+    [Header("偵測地板位移與半徑")]
+    public Vector3 groundoffset;
+    public float groundRadius = 0.1f;
 
 
     private Transform player;
     private Rigidbody2D rig;
     private Animator ani;
 
+    /// <summary>
+    /// Cd時間
+    /// </summary>
     private float timer;
+
+    /// <summary>
+    /// 原始速度
+    /// </summary>
+    private float speedOriginal;
+
     #endregion
 
     #region 事件
@@ -35,6 +45,7 @@ public class Purple : MonoBehaviour
         player = GameObject.Find("Player").transform;
 
         timer = cd;
+        speedOriginal = speed;
     }
 
     private void OnDrawGizmos()
@@ -44,11 +55,15 @@ public class Purple : MonoBehaviour
 
         Gizmos.color = new Color(1, 0, 0, 0.3f);
         Gizmos.DrawSphere(transform.position, radiusAttack);
+
+        Gizmos.color = new Color(0.6f, 0.9f, 1, 0.7f);
+        Gizmos.DrawSphere(transform.position + transform.right * groundoffset.x + transform.up * groundoffset.y, groundRadius);
     }
 
     private void Update()
     {
         Move();
+
     }
     #endregion
 
@@ -68,8 +83,9 @@ public class Purple : MonoBehaviour
         else if (dis <= radiusTrack)
         {
             rig.velocity = transform.right * speed * Time.deltaTime;
-            ani.SetBool("走路開關", true);
+            ani.SetBool("走路開關", speed != 0);
             LookAtPlayer();
+            CheckGround();
         }
 
         else
@@ -113,6 +129,46 @@ public class Purple : MonoBehaviour
     
         
     }
-}
+    
+    /// <summary>
+    /// 移動區域
+    /// </summary>
+    private void CheckGround()
+    {
+        Collider2D hit = Physics2D.OverlapCircle(transform.position + transform.right * groundoffset.x + transform.up * groundoffset.y, groundRadius, 1 << 8);
+
+        if (hit && (hit.name == "地板" || hit.name == "跳台"))
+        {
+            print("可以向前");
+            speed = speedOriginal;
+        }
+
+        else
+        {
+            print("不可以向前");
+            speed = 0;
+        }
+
+    }
+
+    /// <summary>
+    /// 死亡
+    /// </summary>
+    private void Dead() 
+    {
+        ani.SetBool("死亡", true);
+    }
+
+    /// <summary>
+    /// 受傷
+    /// </summary>
+    /// <param name="damge">接收到的傷害</param>
+    public void Hit(float damge)
+    {
+        hp -= damge;
+
+        if (hp <= 0) Dead();
+    }
     #endregion
+}
 
