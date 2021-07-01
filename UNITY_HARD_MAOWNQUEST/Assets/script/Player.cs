@@ -136,6 +136,8 @@ public class Player : MonoBehaviour
 
             //計時器歸零
             timer = 0;
+
+            // 子彈攻擊力
         }
         #endregion
 
